@@ -2,12 +2,8 @@ export const productData = {
   title: 'Produto Exemplo',
   price: 199.99,
   images: {
-    main: 'https://example.com/images/main-product.jpg',
-    thumbnails: [
-      'https://example.com/images/thumb1.jpg',
-      'https://example.com/images/thumb2.jpg',
-      'https://example.com/images/thumb3.jpg',
-    ],
+    main: 'image1.jpg',
+    thumbnails: ['product.jpg', 'product1.jpg', '11011.jpg'],
   },
   variants: {
     sizes: ['P', 'M', 'G', 'GG'],

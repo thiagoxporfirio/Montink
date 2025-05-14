@@ -1,52 +1,79 @@
 import React, { useState } from 'react';
 
+const formatCep = (cep: string) => {
+  // Remove tudo que não for dígito e formata para 00000-000
+  const digits = cep.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+};
+
 const DeliveryChecker: React.FC = () => {
   const [cep, setCep] = useState('');
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState<any>(null);
   const [error, setError] = useState('');
 
-  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCep(e.target.value);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCep(e.target.value);
+    setCep(formatted);
+    setAddress(null);
+    setError('');
   };
 
-  const handleCheckDelivery = async () => {
-    if (cep.length !== 8) {
-      setError('CEP deve ter 8 dígitos.');
-      setAddress('');
+  const handleCheck = async () => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) {
+      setError('Digite um CEP válido com 8 dígitos.');
+      setAddress(null);
       return;
     }
-
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      const data = await response.json();
-
+      const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await res.json();
       if (data.erro) {
         setError('CEP não encontrado.');
-        setAddress('');
+        setAddress(null);
       } else {
+        setAddress(data);
         setError('');
-        setAddress(`${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`);
       }
-    } catch (error) {
+    } catch {
       setError('Erro ao consultar o CEP.');
-      setAddress('');
+      setAddress(null);
     }
   };
 
   return (
-    <div className="delivery-checker">
-      <input
-        type="text"
-        value={cep}
-        onChange={handleCepChange}
-        placeholder="Digite seu CEP"
-        className="border p-2"
-      />
-      <button onClick={handleCheckDelivery} className="bg-blue-500 text-white p-2 ml-2">
-        Verificar
-      </button>
-      {error && <p className="text-red-500">{error}</p>}
-      {address && <p className="text-green-500">Endereço: {address}</p>}
+    <div className="mt-6">
+      <label className="block mb-2 font-semibold">Verifique a disponibilidade de entrega:</label>
+      <div className="flex space-x-2">
+        <input
+          type="text"
+          value={cep}
+          onChange={handleChange}
+          placeholder="Digite o CEP"
+          maxLength={9}
+          className="border px-3 py-2 rounded w-40"
+        />
+        <button
+          onClick={handleCheck}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Consultar
+        </button>
+      </div>
+      {error && <div className="text-red-500 mt-2">{error}</div>}
+      {address && (
+        <div className="mt-2 text-green-700">
+          <div>
+            {address.logradouro} {address.complemento}
+          </div>
+          <div>{address.bairro}</div>
+          <div>
+            {address.localidade} - {address.uf}
+          </div>
+          <div>CEP: {address.cep}</div>
+        </div>
+      )}
     </div>
   );
 };
